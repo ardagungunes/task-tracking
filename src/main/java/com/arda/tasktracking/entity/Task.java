@@ -22,14 +22,19 @@ public class Task {
     @Column(nullable = false)
     private boolean completed;
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "user_id", nullable = false)
+    private User user;
+
     public Task() {
     }
 
-    public Task(String title, String description, int priority, boolean completed) {
+    public Task(String title, String description, int priority, boolean completed, User user) {
         this.title = title;
         this.description = description;
         this.priority = priority;
         this.completed = completed;
+        this.user = user;
     }
 
     public Long getId() {
@@ -70,5 +75,13 @@ public class Task {
 
     public void setCompleted(boolean completed) {
         this.completed = completed;
+    }
+
+    public User getUser() {
+        return user;
+    }
+
+    public void setUser(User user) {
+        this.user = user;
     }
 }
