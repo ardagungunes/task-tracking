@@ -4,11 +4,13 @@ import com.arda.tasktracking.entity.Authority;
 import com.arda.tasktracking.entity.User;
 import com.arda.tasktracking.repository.UserRepository;
 import com.arda.tasktracking.response.UserResponse;
+import org.springframework.http.HttpStatus;
 import org.springframework.security.authentication.AnonymousAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.nio.file.AccessDeniedException;
 import java.util.List;
@@ -46,4 +48,39 @@ public class UserServiceImpl implements UserService{
                         toList()
         );
     }
+
+    @Override
+    public void deleteUser() throws Exception {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+
+        if(authentication == null ||
+                !authentication.isAuthenticated() ||
+                authentication.getPrincipal().equals("anonymousUser")){
+            throw new AccessDeniedException("Authentication is required.");
+        }
+
+        User user = (User) authentication.getPrincipal();
+
+        if (isLastAdmin(user)) {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "The last admin can not be deleted");
+        }
+
+        userRepository.delete(user);
+    }
+
+    private boolean isLastAdmin(User user){
+
+        boolean isAdmin = user.getAuthorities()
+                .stream()
+                .anyMatch(authority -> "ROLE_ADMIN".equals(authority.getAuthority()));
+
+        if(isAdmin){
+            long adminCount = userRepository.countAdmins();
+
+            return adminCount <= 1;
+        }
+
+        return false;
+    }
+
 }
