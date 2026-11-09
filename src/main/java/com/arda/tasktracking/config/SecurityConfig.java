@@ -16,6 +16,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.AuthenticationEntryPoint;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import org.springframework.security.web.access.AccessDeniedHandler;
 
 @Configuration
 @EnableWebSecurity
@@ -51,11 +52,22 @@ public class SecurityConfig {
         {
             response.setStatus(HttpStatus.UNAUTHORIZED.value());
             response.setContentType("application/json");
-            response.setHeader("WWW-Authenticate", "");
+            response.setHeader("WWW-Authenticate", "Bearer");
             response.getWriter().write("""
             {"status": 401, "error": "Unauthorized", "message": "Authentication required"}
             """);
         });
+    }
+
+    @Bean
+    public AccessDeniedHandler accessDeniedHandler() {
+        return (request, response, accessDeniedException) -> {
+            response.setStatus(HttpStatus.FORBIDDEN.value());
+            response.setContentType("application/json");
+            response.getWriter().write("""
+        {"status": 403, "message": "You do not have permission to do this"}
+        """);
+        };
     }
 
     @Bean
@@ -68,8 +80,9 @@ public class SecurityConfig {
 
         http.csrf(csrf -> csrf.disable());
 
-        http.exceptionHandling(exc ->
-                exc.authenticationEntryPoint(authenticationEntryPoint()));
+        http.exceptionHandling(exc -> exc
+                .authenticationEntryPoint(authenticationEntryPoint())
+                .accessDeniedHandler((accessDeniedHandler())));
 
         http.sessionManagement(session ->
                 session.sessionCreationPolicy(SessionCreationPolicy.STATELESS));

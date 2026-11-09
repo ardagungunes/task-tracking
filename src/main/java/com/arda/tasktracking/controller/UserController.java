@@ -6,7 +6,7 @@ import com.arda.tasktracking.service.UserService;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 
-import java.nio.file.AccessDeniedException;
+
 
 @RequestMapping("/api/users")
 @RestController
@@ -20,12 +20,13 @@ public class UserController {
 
     @ResponseStatus(HttpStatus.OK)
     @GetMapping("/info")
-    public UserResponse getUserInfo() throws AccessDeniedException {
+    public UserResponse getUserInfo(){
         return this.userService.getUserInfo();
     }
 
+    @ResponseStatus(HttpStatus.NO_CONTENT)
     @DeleteMapping()
-    public void deleteUser() throws Exception {
+    public void deleteUser(){
         userService.deleteUser();
     }
 }

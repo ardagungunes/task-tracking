@@ -6,11 +6,13 @@ import com.arda.tasktracking.repository.UserRepository;
 import com.arda.tasktracking.request.AuthenticationRequest;
 import com.arda.tasktracking.request.RegisterRequest;
 import com.arda.tasktracking.response.AuthenticationResponse;
+import org.springframework.http.HttpStatus;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -33,10 +35,10 @@ public class AuthenticationServiceImpl implements AuthenticationService{
 
     @Override
     @Transactional
-    public void register(RegisterRequest input) throws Exception {
+    public void register(RegisterRequest input) {
 
         if(isEmailExist(input.getEmail())){
-            throw new IllegalArgumentException("Email is already in use");
+            throw new ResponseStatusException(HttpStatus.CONFLICT, "Email is already in use");
         }
 
         User user = buildNewUser(input);

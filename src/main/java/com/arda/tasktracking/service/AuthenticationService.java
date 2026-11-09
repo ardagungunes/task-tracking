@@ -6,7 +6,7 @@ import com.arda.tasktracking.response.AuthenticationResponse;
 
 public interface AuthenticationService {
 
-    void register(RegisterRequest input) throws Exception;
+    void register(RegisterRequest input);
 
     AuthenticationResponse login(AuthenticationRequest authenticationRequest);
 }

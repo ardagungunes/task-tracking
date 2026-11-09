@@ -12,7 +12,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
 
-import java.nio.file.AccessDeniedException;
+import org.springframework.security.access.AccessDeniedException;
 import java.util.List;
 
 @Service
@@ -26,40 +26,22 @@ public class UserServiceImpl implements UserService{
 
     @Override
     @Transactional(readOnly = true)
-    public UserResponse getUserInfo() throws AccessDeniedException {
+    public UserResponse getUserInfo(){
 
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-
-        if(authentication == null ||
-                !authentication.isAuthenticated() ||
-                authentication.getPrincipal().equals("anonymousUser")){
-            throw new AccessDeniedException("Authentication is required.");
-        }
-
-        User user = (User) authentication.getPrincipal();
+        User user = getAuthenticatedUser();
 
         return new UserResponse(
                 user.getId(),
                 user.getEmail(),
                 user.getFirstName() + " " + user.getLastName(),
-                user.getAuthorities().
-                        stream().
-                        map(auth -> (Authority) auth).
-                        toList()
+                user.getAuthorities().stream().map(auth -> (Authority) auth).toList()
         );
     }
 
     @Override
-    public void deleteUser() throws Exception {
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-
-        if(authentication == null ||
-                !authentication.isAuthenticated() ||
-                authentication.getPrincipal().equals("anonymousUser")){
-            throw new AccessDeniedException("Authentication is required.");
-        }
-
-        User user = (User) authentication.getPrincipal();
+    @Transactional
+    public void deleteUser(){
+        User user = getAuthenticatedUser();
 
         if (isLastAdmin(user)) {
             throw new ResponseStatusException(HttpStatus.FORBIDDEN, "The last admin can not be deleted");
@@ -82,5 +64,14 @@ public class UserServiceImpl implements UserService{
 
         return false;
     }
+    private User getAuthenticatedUser() {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
 
-}
+        if (authentication == null
+                || !authentication.isAuthenticated()
+                || authentication instanceof AnonymousAuthenticationToken) {
+            throw new AccessDeniedException("Authentication is required.");
+        }
+
+        return (User) authentication.getPrincipal();
+} }
