@@ -5,6 +5,7 @@ import org.jspecify.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.*;
+import org.springframework.web.ErrorResponse;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
@@ -61,8 +62,8 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
                                                              HttpHeaders headers,
                                                              HttpStatusCode status,
                                                              WebRequest request) {
-        String message = (body instanceof ProblemDetail detail && detail.getDetail() != null)
-                ? detail.getDetail()
+        String message = (ex instanceof ErrorResponse errorResponse && errorResponse.getBody().getDetail() != null)
+                ? errorResponse.getBody().getDetail()
                 : "Request could not be processed";
         return ResponseEntity.status(status).headers(headers).body(new ApiError(status.value(), message));
     }
